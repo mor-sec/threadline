@@ -1,0 +1,196 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">Threadline</title>
+  <desc id="d">Ten sources flow through entity resolution and an idempotent loader into a Neo4j security graph, which answers four analyst questions with the supporting graph path.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#111a33"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrowT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2dd4bf"/>
+    </marker>
+    <marker id="arrowR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#f87171"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="800" rx="18" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="40" y="62" font-size="36" font-weight="700" fill="#f1f5f9" letter-spacing="0.5">Threadline</text>
+  <text x="248" y="62" font-size="17" fill="#94a3b8">security knowledge graph + GraphRAG on Neo4j</text>
+  <text x="40" y="90" font-size="14" fill="#2dd4bf">Every answer comes back with the path that supports it.</text>
+
+  <!-- Panel: sources -->
+  <rect x="40" y="112" width="300" height="368" rx="12" fill="#0f172a" stroke="#1e293b"/>
+  <text x="60" y="142" font-size="13" font-weight="700" fill="#cbd5e1" letter-spacing="1.5">1 · SOURCES</text>
+  <text x="60" y="170" font-size="11" fill="#64748b">PUBLIC THREAT INTEL</text>
+  <g font-size="12" fill="#e2e8f0">
+    <rect x="60" y="178" width="126" height="24" rx="6" fill="#1e293b"/><text x="72" y="194">MITRE ATT&amp;CK</text>
+    <rect x="194" y="178" width="126" height="24" rx="6" fill="#1e293b"/><text x="206" y="194">CISA KEV</text>
+    <rect x="60" y="208" width="126" height="24" rx="6" fill="#1e293b"/><text x="72" y="224">FIRST EPSS</text>
+    <rect x="194" y="208" width="126" height="24" rx="6" fill="#1e293b"/><text x="206" y="224">OpenCTI (STIX)</text>
+  </g>
+  <text x="60" y="264" font-size="11" fill="#64748b">ESTATE · SYNTHETIC SAMPLE MODE</text>
+  <g font-size="12" fill="#e2e8f0">
+    <rect x="60" y="272" width="126" height="24" rx="6" fill="#1e293b"/><text x="72" y="288">ServiceNow CMDB</text>
+    <rect x="194" y="272" width="126" height="24" rx="6" fill="#1e293b"/><text x="206" y="288">Entra ID</text>
+    <rect x="60" y="302" width="126" height="24" rx="6" fill="#1e293b"/><text x="72" y="318">Tenable</text>
+    <rect x="194" y="302" width="126" height="24" rx="6" fill="#1e293b"/><text x="206" y="318">Defender</text>
+    <rect x="60" y="332" width="126" height="24" rx="6" fill="#1e293b"/><text x="72" y="348">Firewall policy</text>
+    <rect x="194" y="332" width="126" height="24" rx="6" fill="#1e293b"/><text x="206" y="348">Sentinel</text>
+  </g>
+  <line x1="60" y1="378" x2="320" y2="378" stroke="#1e293b"/>
+  <text x="60" y="404" font-size="22" font-weight="700" fill="#f1f5f9">48k <tspan font-size="12" font-weight="400" fill="#94a3b8">nodes</tspan></text>
+  <text x="190" y="404" font-size="22" font-weight="700" fill="#f1f5f9">104k <tspan font-size="12" font-weight="400" fill="#94a3b8">relationships</tspan></text>
+  <text x="60" y="440" font-size="22" font-weight="700" fill="#f1f5f9">2,961 <tspan font-size="12" font-weight="400" fill="#94a3b8">assets</tspan></text>
+  <text x="190" y="440" font-size="22" font-weight="700" fill="#f1f5f9">1,547 <tspan font-size="12" font-weight="400" fill="#94a3b8">identities</tspan></text>
+  <text x="60" y="464" font-size="11" fill="#64748b">full synthetic estate, loaded in ~85 s</text>
+
+  <path d="M344 296 L366 296" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Panel: pipeline -->
+  <rect x="370" y="112" width="260" height="368" rx="12" fill="#0f172a" stroke="#1e293b"/>
+  <text x="390" y="142" font-size="13" font-weight="700" fill="#cbd5e1" letter-spacing="1.5">2 · PIPELINE</text>
+  <g font-size="13" fill="#e2e8f0">
+    <rect x="390" y="158" width="220" height="40" rx="8" fill="#1e293b"/>
+    <text x="404" y="176" font-weight="600">Extract</text><text x="404" y="191" font-size="11" fill="#94a3b8">one connector per source</text>
+    <rect x="390" y="212" width="220" height="40" rx="8" fill="#1e293b"/>
+    <text x="404" y="230" font-weight="600">Resolve entities</text><text x="404" y="245" font-size="11" fill="#94a3b8">strong keys › hostname › IP = candidate</text>
+    <rect x="390" y="266" width="220" height="40" rx="8" fill="#1e293b"/>
+    <text x="404" y="284" font-weight="600">Validate</text><text x="404" y="299" font-size="11" fill="#94a3b8">pydantic models, schema of allowed rels</text>
+    <rect x="390" y="320" width="220" height="40" rx="8" fill="#1e293b"/>
+    <text x="404" y="338" font-weight="600">MERGE in batches</text><text x="404" y="353" font-size="11" fill="#94a3b8">idempotent, with provenance</text>
+    <rect x="390" y="374" width="220" height="40" rx="8" fill="#1e293b"/>
+    <text x="404" y="392" font-weight="600">Score risk</text><text x="404" y="407" font-size="11" fill="#94a3b8">KEV · EPSS · exposure · criticality</text>
+    <rect x="390" y="428" width="220" height="40" rx="8" fill="#13302e" stroke="#2dd4bf" stroke-opacity="0.5"/>
+    <text x="404" y="446" font-weight="600">Data-quality report</text><text x="404" y="461" font-size="11" fill="#94a3b8">fails the run if counts drop &gt;30%</text>
+  </g>
+  <g stroke="#475569" stroke-width="1.5">
+    <line x1="500" y1="198" x2="500" y2="212"/><line x1="500" y1="252" x2="500" y2="266"/>
+    <line x1="500" y1="306" x2="500" y2="320"/><line x1="500" y1="360" x2="500" y2="374"/>
+    <line x1="500" y1="414" x2="500" y2="428"/>
+  </g>
+
+  <path d="M634 296 L656 296" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Panel: graph -->
+  <rect x="660" y="112" width="500" height="368" rx="12" fill="#0f172a" stroke="#1e293b"/>
+  <text x="680" y="142" font-size="13" font-weight="700" fill="#cbd5e1" letter-spacing="1.5">3 · THE GRAPH</text>
+  <text x="680" y="166" font-size="12" fill="#94a3b8">A phished user's thread to a crown jewel (Q2)</text>
+
+  <!-- background context -->
+  <g fill="#334155">
+    <circle cx="742" cy="196" r="4"/><circle cx="836" cy="320" r="5"/><circle cx="930" cy="198" r="4"/>
+    <circle cx="1040" cy="320" r="4"/><circle cx="1124" cy="196" r="5"/><circle cx="700" cy="318" r="3"/>
+    <circle cx="988" cy="330" r="3"/><circle cx="878" cy="190" r="3"/>
+  </g>
+  <g stroke="#1e293b" stroke-width="1">
+    <line x1="742" y1="196" x2="710" y2="262"/><line x1="836" y1="320" x2="800" y2="232"/>
+    <line x1="930" y1="198" x2="900" y2="262"/><line x1="1040" y1="320" x2="1000" y2="232"/>
+    <line x1="1124" y1="196" x2="1100" y2="262"/><line x1="988" y1="330" x2="900" y2="262"/>
+  </g>
+
+  <!-- the thread -->
+  <g stroke="#2dd4bf" stroke-width="2.5" fill="none" filter="url(#glow)">
+    <line x1="726" y1="262" x2="782" y2="235" marker-end="url(#arrowT)"/>
+    <line x1="818" y1="235" x2="882" y2="262" marker-end="url(#arrowT)"/>
+    <line x1="918" y1="262" x2="982" y2="235" marker-end="url(#arrowT)"/>
+    <line x1="1018" y1="235" x2="1080" y2="260" marker-end="url(#arrowT)"/>
+  </g>
+  <g font-size="9.5" fill="#5eead4" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+    <text x="738" y="232">CAN_ACCESS</text>
+    <text x="866" y="234">HAS_SESSION</text>
+    <text x="936" y="232">MEMBER_OF</text>
+    <text x="1066" y="234">ADMIN_TO</text>
+  </g>
+  <g>
+    <circle cx="710" cy="268" r="16" fill="#0f766e" stroke="#2dd4bf" stroke-width="2"/>
+    <circle cx="800" cy="228" r="16" fill="#1e3a8a" stroke="#60a5fa" stroke-width="2"/>
+    <circle cx="900" cy="268" r="16" fill="#0f766e" stroke="#2dd4bf" stroke-width="2"/>
+    <circle cx="1000" cy="228" r="16" fill="#4c1d95" stroke="#a78bfa" stroke-width="2"/>
+    <circle cx="1100" cy="268" r="19" fill="#78350f" stroke="#f59e0b" stroke-width="2.5" filter="url(#glow)"/>
+  </g>
+  <g font-size="11" fill="#e2e8f0" text-anchor="middle">
+    <text x="710" y="302">phished user</text>
+    <text x="800" y="196">workstation</text>
+    <text x="900" y="302">Domain Admin</text>
+    <text x="1000" y="196">Domain Admins</text>
+    <text x="1100" y="306" fill="#fbbf24" font-weight="600">core-banking-db01</text>
+  </g>
+  <text x="1100" y="320" font-size="10" fill="#94a3b8" text-anchor="middle">crown jewel</text>
+
+  <!-- second thread: exposure -->
+  <line x1="680" y1="352" x2="1140" y2="352" stroke="#1e293b"/>
+  <text x="680" y="376" font-size="12" fill="#94a3b8">An exposed edge device, tied to an actor targeting the sector (Q1)</text>
+  <g stroke="#f87171" stroke-width="2" fill="none">
+    <line x1="728" y1="428" x2="808" y2="428" marker-end="url(#arrowR)"/>
+    <line x1="852" y1="428" x2="932" y2="428" marker-end="url(#arrowR)"/>
+    <line x1="1048" y1="428" x2="976" y2="428" marker-end="url(#arrowR)"/>
+  </g>
+  <g font-size="9.5" fill="#fca5a5" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+    <text x="768" y="418" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="10.5">open finding</text>
+    <text x="892" y="418">EXPLOITED_BY</text>
+    <text x="1012" y="418">USES</text>
+  </g>
+  <g>
+    <circle cx="710" cy="428" r="14" fill="#1e3a8a" stroke="#60a5fa" stroke-width="2"/>
+    <circle cx="830" cy="428" r="14" fill="#7f1d1d" stroke="#f87171" stroke-width="2"/>
+    <circle cx="954" cy="428" r="14" fill="#831843" stroke="#f472b6" stroke-width="2"/>
+    <circle cx="1070" cy="428" r="14" fill="#7c2d12" stroke="#fb923c" stroke-width="2"/>
+  </g>
+  <g font-size="11" fill="#e2e8f0" text-anchor="middle">
+    <text x="710" y="460">vpn-gw-01</text>
+    <text x="830" y="460">KEV CVE</text>
+    <text x="954" y="460">T1190</text>
+    <text x="1070" y="460">FIN7</text>
+  </g>
+
+  <!-- Questions -->
+  <text x="40" y="522" font-size="13" font-weight="700" fill="#cbd5e1" letter-spacing="1.5">4 · ASK — READ-ONLY, WITH THE CYPHER SHOWN</text>
+  <g>
+    <rect x="40" y="536" width="267" height="148" rx="12" fill="#0f172a" stroke="#1e293b"/>
+    <rect x="325" y="536" width="267" height="148" rx="12" fill="#0f172a" stroke="#1e293b"/>
+    <rect x="610" y="536" width="267" height="148" rx="12" fill="#0f172a" stroke="#1e293b"/>
+    <rect x="895" y="536" width="267" height="148" rx="12" fill="#0f172a" stroke="#1e293b"/>
+  </g>
+  <g font-size="12" font-weight="700" letter-spacing="1">
+    <text x="58" y="562" fill="#f87171">Q1 · EXPOSURE</text>
+    <text x="343" y="562" fill="#2dd4bf">Q2 · ATTACK PATHS</text>
+    <text x="628" y="562" fill="#f59e0b">Q3 · COVERAGE GAPS</text>
+    <text x="913" y="562" fill="#a78bfa">Q4 · WHAT CHANGED</text>
+  </g>
+  <g font-size="13" fill="#e2e8f0">
+    <text x="58" y="588">Internet-facing assets exposed</text>
+    <text x="58" y="606">to techniques of actors targeting</text>
+    <text x="58" y="624">our sector, and their mitigations</text>
+    <text x="343" y="588">Attack paths from a phished</text>
+    <text x="343" y="606">user to the crown jewels</text>
+    <text x="628" y="588">KEV-listed vulnerabilities on</text>
+    <text x="628" y="606">assets with no or stale EDR</text>
+    <text x="913" y="588">What changed in our exposure</text>
+    <text x="913" y="606">since last week?</text>
+  </g>
+  <g font-size="12" fill="#94a3b8">
+    <text x="58" y="664">→ <tspan fill="#f1f5f9">vpn-gw-01</tspan> · T1190 · FIN7</text>
+    <text x="343" y="664">→ <tspan fill="#f1f5f9">4 hops</tspan> to core-banking-db01</text>
+    <text x="628" y="664">→ VPN gateway, stale server, rogue NAS</text>
+    <text x="913" y="664">→ <tspan fill="#f1f5f9">+734</tspan> findings · 1,710 fixed · 4 KEV</text>
+  </g>
+
+  <!-- Guardrails -->
+  <g font-size="12" fill="#cbd5e1">
+    <rect x="40" y="712" width="232" height="34" rx="17" fill="#13302e"/><text x="156" y="734" text-anchor="middle">Read-only query path</text>
+    <rect x="284" y="712" width="232" height="34" rx="17" fill="#13302e"/><text x="400" y="734" text-anchor="middle">Parameterised Cypher only</text>
+    <rect x="528" y="712" width="232" height="34" rx="17" fill="#13302e"/><text x="644" y="734" text-anchor="middle">Node IDs on every answer</text>
+    <rect x="772" y="712" width="388" height="34" rx="17" fill="#13302e"/><text x="966" y="734" text-anchor="middle">CTI and alert text treated as untrusted input</text>
+  </g>
+  <text x="40" y="776" font-size="11" fill="#475569">All estate data is synthetic (“Kestrel Bank”, a fictional bank). Threat intel is public: MITRE ATT&amp;CK v20, CISA KEV, FIRST EPSS.</text>
+</svg>
