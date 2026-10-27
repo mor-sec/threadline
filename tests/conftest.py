@@ -10,6 +10,7 @@ from threadline.model.nodes import UTC
 
 AS_OF = datetime.combine(date.today(), time(), UTC)
 SCALE = 0.2
+TEST_DB = "threadline-test"  # separate from the default database used for demos
 
 
 @pytest.fixture(scope="session")
@@ -28,7 +29,8 @@ def neo4j_test():
         pytest.fail(f"refusing to wipe non-local database {uri}")
     password = os.environ.get("NEO4J_TEST_PASSWORD", "threadline-local-dev")
     driver = GraphDatabase.driver(uri, auth=("neo4j", password))
-    with driver.session() as s:
+    driver.execute_query(f"CREATE DATABASE `{TEST_DB}` IF NOT EXISTS WAIT", database_="system")
+    with driver.session(database=TEST_DB) as s:
         s.run("MATCH (n) CALL (n) { DETACH DELETE n } IN TRANSACTIONS OF 10000 ROWS").consume()
     yield driver
     driver.close()

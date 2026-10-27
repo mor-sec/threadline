@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__neo4j-threadline__read-cypher",
+        "hooks": [{ "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR\"/scripts/audit_hook.py" }]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__neo4j-threadline__read-cypher",
+        "hooks": [{ "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR\"/scripts/audit_hook.py" }]
+      }
+    ]
+  }
+}

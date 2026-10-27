@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "neo4j-threadline": {
+      "type": "stdio",
+      "command": "/home/mythos/Projects/neo4j/scripts/neo4j-mcp-readonly.sh",
+      "args": [],
+      "env": {}
+    }
+  }
+}

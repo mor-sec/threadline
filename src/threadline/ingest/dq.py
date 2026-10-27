@@ -56,7 +56,8 @@ def build(driver: Driver, database: str, batch: Batch, stats: LoadStats, run_id:
         for kind, current in (("labels", labels), ("relationships", types)):
             for name, before in previous.get(kind, {}).items():
                 after = current.get(name, 0)
-                if before and (before - after) / before > DROP_THRESHOLD:
+                # IngestRun is run bookkeeping, written after this report is built.
+                if name != "IngestRun" and before and (before - after) / before > DROP_THRESHOLD:
                     drops.append(f"{kind[:-1]} {name}: {before} -> {after}")
     return {
         "runId": run_id,

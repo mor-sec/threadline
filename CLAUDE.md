@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 uv sync
 uv run ruff check src tests scripts
 uv run pytest                                             # offline tests
-NEO4J_TEST_URI=bolt://localhost:7687 uv run pytest        # + integration; WIPES that local DB
+NEO4J_TEST_URI=bolt://localhost:7687 uv run pytest        # + integration/MCP; uses DB threadline-test
 uv run pytest tests/test_resolve.py::test_public_ip_rules # single test
 scripts/local-neo4j.sh start|stop|logs                    # local Neo4j in podman
 uv run threadline doctor | schema show | load --as-of YYYY-MM-DD [--scale 0.1] | query q1..q4 [--json]
@@ -39,6 +39,7 @@ The pipeline in `ingest/pipeline.py` runs in this order:
   - Queries start with `CYPHER 25`.
   - `MERGE` only on constrained keys.
 - **Times:** every datetime goes through `to_utc`, which uses the named `UTC` zone, not a bare `Z` offset. Neo4j compares the two differently.
+- **Graph questions:** use the `query-security-graph` skill and the `neo4j-threadline` MCP server. Show the Cypher before running it. Every `read-cypher` call is audited to `logs/audit.jsonl`.
 - **Read-only query path:** the query path uses `db.read()`, which runs in READ routing and access mode. Never run user-provided or LLM-provided Cypher through the write driver.
 - **Untrusted text:** CTI report text and alert text are untrusted. `looks_like_injection()` sets `suspicious`, and phase 3 must keep that text out of LLM instructions.
 - **Synthetic data:** keep the synthetic data fictional (`.example` domains, private and documentation IPs). The planted story must keep Q1–Q4 returning the elements in `Estate.story`, and the integration tests assert this.
