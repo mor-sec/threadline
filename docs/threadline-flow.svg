@@ -1,0 +1,199 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1010" width="1200" height="1010" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">Threadline: how it works</title>
+  <desc id="d">Top: the load pipeline runs ten sources through extract, asset records, entity resolution, transform, batched MERGE, risk scoring and a data-quality report into the Neo4j security graph, using write credentials. Bottom: questions are answered with read-only credentials, today through Claude Code, the query skill, an audit hook and the read-only Neo4j MCP server, and in phase 3 through a GraphRAG service with entity linking, a router, a read-only guard, retrieval, a grounded answer with checked citations and a traceable response object.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="1" stop-color="#111a33"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrowT" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2dd4bf"/>
+    </marker>
+    <marker id="arrowA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="1010" rx="18" fill="url(#bg)"/>
+
+  <!-- Title -->
+  <text x="40" y="62" font-size="36" font-weight="700" fill="#f1f5f9" letter-spacing="0.5">Threadline</text>
+  <text x="248" y="62" font-size="17" fill="#94a3b8">how data gets in, and how a question becomes a cited answer</text>
+  <text x="40" y="90" font-size="14" fill="#2dd4bf">Load with write credentials. Ask with read-only ones. Every answer cites the graph elements behind it.</text>
+
+  <!-- ===== A: load pipeline ===== -->
+  <rect x="40" y="112" width="1120" height="248" rx="12" fill="#0f172a" stroke="#1e293b"/>
+  <text x="60" y="140" font-size="13" font-weight="700" fill="#cbd5e1" letter-spacing="1.5">A · LOAD PIPELINE</text>
+  <text x="222" y="140" font-size="12" fill="#64748b" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">uv run threadline load --as-of DATE   ·   ingest/pipeline.py</text>
+
+  <!-- sources -->
+  <rect x="60" y="154" width="170" height="182" rx="10" fill="#0b1224" stroke="#1e293b"/>
+  <text x="72" y="174" font-size="10.5" fill="#64748b" letter-spacing="0.5">PUBLIC THREAT INTEL</text>
+  <g font-size="11" fill="#e2e8f0">
+    <rect x="68" y="182" width="76" height="20" rx="5" fill="#1e293b"/><text x="76" y="196">ATT&amp;CK</text>
+    <rect x="148" y="182" width="76" height="20" rx="5" fill="#1e293b"/><text x="156" y="196">CISA KEV</text>
+    <rect x="68" y="206" width="76" height="20" rx="5" fill="#1e293b"/><text x="76" y="220">FIRST EPSS</text>
+    <rect x="148" y="206" width="76" height="20" rx="5" fill="#1e293b"/><text x="156" y="220">OpenCTI</text>
+  </g>
+  <text x="72" y="248" font-size="10.5" fill="#64748b" letter-spacing="0.5">ESTATE · SAMPLE MODE</text>
+  <g font-size="11" fill="#e2e8f0">
+    <rect x="68" y="256" width="76" height="20" rx="5" fill="#1e293b"/><text x="76" y="270">CMDB</text>
+    <rect x="148" y="256" width="76" height="20" rx="5" fill="#1e293b"/><text x="156" y="270">Entra ID</text>
+    <rect x="68" y="280" width="76" height="20" rx="5" fill="#1e293b"/><text x="76" y="294">Tenable</text>
+    <rect x="148" y="280" width="76" height="20" rx="5" fill="#1e293b"/><text x="156" y="294">Defender</text>
+    <rect x="68" y="304" width="76" height="20" rx="5" fill="#1e293b"/><text x="76" y="318">Firewall</text>
+    <rect x="148" y="304" width="76" height="20" rx="5" fill="#1e293b"/><text x="156" y="318">Sentinel</text>
+  </g>
+  <line x1="230" y1="234" x2="248" y2="234" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- seven steps: x = 250 + i*129, w = 116 -->
+  <g font-size="11" fill="#94a3b8">
+    <rect x="250" y="176" width="116" height="116" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="262" y="200" font-size="13" font-weight="700" fill="#f1f5f9">1 Extract</text>
+    <text x="262" y="222">each connector</text><text x="262" y="238">reads its source;</text><text x="262" y="254">sample mode uses</text><text x="262" y="270">the synthetic estate</text>
+
+    <rect x="379" y="176" width="116" height="116" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="391" y="200" font-size="13" font-weight="700" fill="#f1f5f9">2 Asset records</text>
+    <text x="391" y="222">each source's own</text><text x="391" y="238">view of the hosts</text><text x="391" y="254">it knows about</text>
+
+    <rect x="508" y="176" width="116" height="116" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="520" y="200" font-size="13" font-weight="700" fill="#f1f5f9">3 Resolve</text>
+    <text x="520" y="222">cloud ID, serial,</text><text x="520" y="238">MAC, FQDN, then</text><text x="520" y="254">hostname; an IP</text><text x="520" y="270">match = candidate</text>
+
+    <rect x="637" y="176" width="116" height="116" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="649" y="200" font-size="13" font-weight="700" fill="#f1f5f9">4 Transform</text>
+    <text x="649" y="222">pydantic Node and</text><text x="649" y="238">Rel; REL_SCHEMA</text><text x="649" y="254">rejects any triple</text><text x="649" y="270">not in the model</text>
+
+    <rect x="766" y="176" width="116" height="116" rx="10" fill="#0f2a2a" stroke="#2dd4bf"/>
+    <text x="778" y="200" font-size="13" font-weight="700" fill="#f1f5f9">5 Load</text>
+    <text x="778" y="222">batched MERGE</text><text x="778" y="238">on constrained</text><text x="778" y="254">keys; rerunning</text><text x="778" y="270">changes nothing</text>
+
+    <rect x="895" y="176" width="116" height="116" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="907" y="200" font-size="13" font-weight="700" fill="#f1f5f9">6 Risk score</text>
+    <text x="907" y="222">KEV · EPSS ·</text><text x="907" y="238">exposure ·</text><text x="907" y="254">criticality</text>
+
+    <rect x="1024" y="176" width="116" height="116" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="1036" y="200" font-size="13" font-weight="700" fill="#f1f5f9">7 DQ report</text>
+    <text x="1036" y="222">fails the run if</text><text x="1036" y="238">any count drops</text><text x="1036" y="254">by more than 30%</text>
+  </g>
+  <g stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)">
+    <line x1="366" y1="234" x2="377" y2="234"/>
+    <line x1="495" y1="234" x2="506" y2="234"/>
+    <line x1="624" y1="234" x2="635" y2="234"/>
+    <line x1="753" y1="234" x2="764" y2="234"/>
+    <line x1="882" y1="234" x2="893" y2="234"/>
+    <line x1="1011" y1="234" x2="1022" y2="234"/>
+  </g>
+  <!-- build() bracket over steps 1-4 -->
+  <path d="M250,304 v8 h503 v-8" fill="none" stroke="#475569" stroke-width="1.2"/>
+  <text x="501" y="334" font-size="11.5" fill="#94a3b8" text-anchor="middle">steps 1–4 are build(): pure and deterministic for a seed, scale and date, so tests need no database</text>
+
+  <!-- write arrow into graph -->
+  <line x1="824" y1="292" x2="824" y2="388" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrowA)"/>
+  <text x="834" y="334" font-size="11.5" fill="#fbbf24">write credentials · loader only</text>
+
+  <!-- ===== Graph band ===== -->
+  <rect x="40" y="392" width="1120" height="78" rx="14" fill="#0b1f24" stroke="#2dd4bf" stroke-width="1.5"/>
+  <text x="64" y="425" font-size="19" font-weight="700" fill="#f1f5f9">Neo4j security graph</text>
+  <text x="64" y="448" font-size="11.5" fill="#94a3b8">constraints from model/schema.py · local in podman, or Aura</text>
+  <g font-size="11.5" fill="#99f6e4" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+    <text x="440" y="425">Asset · Identity · Group · Role · Finding · Vulnerability · Technique</text>
+    <text x="440" y="448">ThreatActor · Software · Mitigation · Alert · Report · Indicator · +7 more</text>
+  </g>
+
+  <!-- read arrow out of graph -->
+  <text x="704" y="492" font-size="11.5" fill="#5eead4">read-only user · READ access mode · no LLM-written writes</text>
+
+  <!-- ===== B: ask ===== -->
+  <rect x="40" y="500" width="1120" height="458" rx="12" fill="#0f172a" stroke="#1e293b"/>
+  <line x1="692" y1="470" x2="692" y2="568" stroke="#2dd4bf" stroke-width="2" marker-end="url(#arrowT)"/>
+  <text x="60" y="530" font-size="13" font-weight="700" fill="#cbd5e1" letter-spacing="1.5">B · ASK</text>
+  <text x="128" y="530" font-size="12" fill="#64748b">question → Cypher → rows → answer with IDs</text>
+
+  <!-- lane 1: built -->
+  <text x="60" y="562" font-size="11" fill="#2dd4bf" letter-spacing="1" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">TODAY · PHASE 2 · CLAUDE CODE + MCP</text>
+  <!-- columns: x = 60 + i*183, w = 165 -->
+  <g font-size="11" fill="#94a3b8">
+    <rect x="60" y="572" width="165" height="112" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="72" y="596" font-size="13" font-weight="700" fill="#f1f5f9">Question</text>
+    <text x="72" y="618">in plain English, e.g.</text><text x="72" y="634">“attack paths from</text><text x="72" y="650">phished users to</text><text x="72" y="666">crown jewels”</text>
+
+    <rect x="243" y="572" width="165" height="112" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="255" y="596" font-size="13" font-weight="700" fill="#f1f5f9">Query skill</text>
+    <text x="255" y="618">reads the schema file,</text><text x="255" y="634">prefers the Q1–Q4</text><text x="255" y="650">templates, shows the</text><text x="255" y="666">Cypher before running</text>
+
+    <rect x="426" y="572" width="165" height="112" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="438" y="596" font-size="13" font-weight="700" fill="#f1f5f9">Audit hook</text>
+    <text x="438" y="618">logs query and params</text><text x="438" y="634">to logs/audit.jsonl;</text><text x="438" y="650">blocks the call if the</text><text x="438" y="666">log can't be written</text>
+
+    <rect x="609" y="572" width="165" height="112" rx="10" fill="#0f2a2a" stroke="#2dd4bf"/>
+    <text x="621" y="596" font-size="13" font-weight="700" fill="#f1f5f9">Read-only MCP</text>
+    <text x="621" y="618">neo4j-mcp-server</text><text x="621" y="634">exposes get-schema and</text><text x="621" y="650">read-cypher only;</text><text x="621" y="666">writes are refused</text>
+
+    <rect x="792" y="572" width="165" height="112" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="804" y="596" font-size="13" font-weight="700" fill="#f1f5f9">Rows</text>
+    <text x="804" y="618">named properties and</text><text x="804" y="634">path node IDs; the</text><text x="804" y="650">row count is logged</text>
+
+    <rect x="975" y="572" width="165" height="112" rx="10" fill="#111c33" stroke="#334155"/>
+    <text x="987" y="596" font-size="13" font-weight="700" fill="#f1f5f9">Answer</text>
+    <text x="987" y="618">from the rows only,</text><text x="987" y="634">citing assetId, cveId,</text><text x="987" y="650">pathNodeIds; gaps are</text><text x="987" y="666">stated, not filled</text>
+  </g>
+  <g stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)">
+    <line x1="225" y1="628" x2="241" y2="628"/>
+    <line x1="408" y1="628" x2="424" y2="628"/>
+    <line x1="591" y1="628" x2="607" y2="628"/>
+    <line x1="774" y1="628" x2="790" y2="628"/>
+    <line x1="957" y1="628" x2="973" y2="628"/>
+  </g>
+
+  <!-- lane 2: planned -->
+  <text x="60" y="718" font-size="11" fill="#a78bfa" letter-spacing="1" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">PHASE 3 · GRAPHRAG SERVICE · PLANNED</text>
+  <g font-size="11" fill="#94a3b8">
+    <rect x="60" y="728" width="165" height="124" rx="10" fill="#14122b" stroke="#a78bfa" stroke-dasharray="5 4"/>
+    <text x="72" y="752" font-size="13" font-weight="700" fill="#f1f5f9">1 Entity linking</text>
+    <text x="72" y="774">a full-text index maps</text><text x="72" y="790">names in the question</text><text x="72" y="806">to node IDs, passed as</text><text x="72" y="822">$params, never pasted</text>
+
+    <rect x="243" y="728" width="165" height="124" rx="10" fill="#14122b" stroke="#a78bfa" stroke-dasharray="5 4"/>
+    <text x="255" y="752" font-size="13" font-weight="700" fill="#f1f5f9">2 Router</text>
+    <text x="255" y="774">a · curated template</text><text x="255" y="790">b · Text2Cypher</text><text x="255" y="806">c · hybrid search over</text><text x="255" y="822">CTI text, then expand</text>
+
+    <rect x="426" y="728" width="165" height="124" rx="10" fill="#14122b" stroke="#a78bfa" stroke-dasharray="5 4"/>
+    <text x="438" y="752" font-size="13" font-weight="700" fill="#f1f5f9">3 Guard</text>
+    <text x="438" y="774">EXPLAIN must report a</text><text x="438" y="790">read; procedure allow-</text><text x="438" y="806">list; LIMIT, size cap</text><text x="438" y="822">and timeout</text>
+
+    <rect x="609" y="728" width="165" height="124" rx="10" fill="#0f2a2a" stroke="#2dd4bf" stroke-dasharray="5 4"/>
+    <text x="621" y="752" font-size="13" font-weight="700" fill="#f1f5f9">4 Retrieve</text>
+    <text x="621" y="774">READ transaction;</text><text x="621" y="790">rows and paths with</text><text x="621" y="806">stable IDs</text>
+
+    <rect x="792" y="728" width="165" height="124" rx="10" fill="#14122b" stroke="#a78bfa" stroke-dasharray="5 4"/>
+    <text x="804" y="752" font-size="13" font-weight="700" fill="#f1f5f9">5 Grounded answer</text>
+    <text x="804" y="774">sees retrieved rows</text><text x="804" y="790">only; cites them as</text><text x="804" y="806">[Asset:a-123]; unknown</text><text x="804" y="822">citations are removed</text>
+
+    <rect x="975" y="728" width="165" height="124" rx="10" fill="#14122b" stroke="#a78bfa" stroke-dasharray="5 4"/>
+    <text x="987" y="752" font-size="13" font-weight="700" fill="#f1f5f9">6 Response</text>
+    <text x="987" y="774">answer · Cypher + params</text><text x="987" y="790">path IDs + rel types</text><text x="987" y="806">provenance per element</text><text x="987" y="822">route · model · timings</text>
+  </g>
+  <g stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow)">
+    <line x1="225" y1="790" x2="241" y2="790"/>
+    <line x1="408" y1="790" x2="424" y2="790"/>
+    <line x1="591" y1="790" x2="607" y2="790"/>
+    <line x1="774" y1="790" x2="790" y2="790"/>
+    <line x1="957" y1="790" x2="973" y2="790"/>
+  </g>
+
+  <!-- untrusted text -->
+  <rect x="60" y="872" width="1080" height="66" rx="10" fill="#1f0f14" stroke="#f87171" stroke-opacity="0.6"/>
+  <text x="80" y="898" font-size="12" font-weight="700" fill="#fca5a5" letter-spacing="1">UNTRUSTED TEXT</text>
+  <text x="210" y="898" font-size="12" fill="#e2e8f0">CTI report and alert text can carry prompt injection. At ingest, looks_like_injection() sets suspicious = true.</text>
+  <text x="210" y="920" font-size="12" fill="#e2e8f0">At answer time that text is quoted as data and never placed in the model's instructions.</text>
+
+  <!-- footer -->
+  <line x1="40" y1="985" x2="70" y2="985" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="78" y="989" font-size="11.5" fill="#94a3b8">built</text>
+  <line x1="124" y1="985" x2="154" y2="985" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <text x="162" y="989" font-size="11.5" fill="#94a3b8">planned (phase 3)</text>
+  <text x="1160" y="989" font-size="11.5" fill="#64748b" text-anchor="end">Estate data is synthetic (“Kestrel Bank”, fictional). Threat intel is public: MITRE ATT&amp;CK, CISA KEV, FIRST EPSS.</text>
+</svg>

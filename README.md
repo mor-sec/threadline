@@ -2,6 +2,8 @@
 
 ![Threadline: ten sources flow through entity resolution and an idempotent loader into a Neo4j security graph that answers four analyst questions with the supporting path](docs/threadline.svg)
 
+![How it works: the seven-step load pipeline writes into the graph; questions are answered read-only, today through Claude Code and the MCP server, and in phase 3 through a GraphRAG service that checks every citation](docs/threadline-flow.svg)
+
 A security knowledge graph on Neo4j covering assets, identities, vulnerabilities, threat actors, ATT&CK techniques and controls. It is built to answer analyst questions with traceable, graph-grounded evidence. The design and phases are in [docs/PLAN.md](docs/PLAN.md).
 
 **Status:** Phases 1 and 2 are done.
@@ -93,6 +95,8 @@ Start `claude` in this folder and approve `neo4j-threadline` when asked. Then as
 - In Claude Code, a hook (`.claude/settings.json` → `scripts/audit_hook.py`) appends every query attempt (Cypher and parameters) and its row count to `logs/audit.jsonl`.
 - The hook fails closed: if the log can't be written, the query is blocked.
 - Claude Desktop has no hooks. The server logs each query to stderr, which Desktop keeps under `~/.config/Claude/logs/` (`mcp*.log`).
+
+**Example:** [`docs/examples/attack-paths.html`](docs/examples/attack-paths.html) shows what Claude produced when asked to "show attack paths from phished users to crown jewels" and then "visualise this graph". It's an interactive map of the 18 Q2 paths, with choke-point admin sessions and a fix for each path. It's a static snapshot of the 27 Oct 2026 synthetic data, so download it and open it in a browser; GitHub shows HTML as source.
 
 Regenerate the schema file after a model change:
 

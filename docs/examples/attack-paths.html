@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Example: Q2 results from the synthetic Kestrel Bank graph (27 Oct 2026), visualised. Static snapshot; open in a browser. -->
+<title>Kestrel Bank Attack Paths</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: hop-by-hop columns (user → crown jewel) on a dark operations canvas; detail and choke points below. */
+:root {
+  --bg: #0b1020;
+  --panel: #0f172a;
+  --line: #1e293b;
+  --fg: #e2e8f0;
+  --muted: #94a3b8;
+  --faint: #64748b;
+  --thread: #2dd4bf;
+  --thread-soft: #134e4a;
+  --jewel: #f59e0b;
+  --jewel-soft: #451a03;
+  --jewel-text: #fde68a;
+  --kev: #f87171;
+  --kev-soft: #450a0a;
+  --priv: #a78bfa;
+  --priv-soft: #2e1065;
+  --host: #60a5fa;
+  --host-soft: #172554;
+  --edge: #334155;
+  --rowhover: #111d36;
+  --focus: #ffffff;
+  --font-display: "IBM Plex Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-label: "IBM Plex Sans Condensed", "Arial Narrow", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-display);
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-block: 28px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid;
+  gap: 20px;
+}
+header { display: grid; gap: 6px; }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--thread);
+}
+h1 {
+  margin: 0;
+  font-size: clamp(24px, 3.2vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.lede { margin: 0; color: var(--muted); max-width: 70ch; }
+.stats { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 8px; }
+.stat { display: grid; }
+.stat b { font-size: 22px; font-variant-numeric: tabular-nums; color: var(--fg); }
+.stat span { font-size: 13px; color: var(--muted); }
+.stat.crit b { color: var(--jewel); }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.graph { overflow-x: auto; padding-block: 8px; }
+.graph svg { display: block; min-width: 1000px; width: 100%; height: auto; }
+.hint {
+  font-size: 12.5px;
+  color: var(--faint);
+  padding: 0 18px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  align-items: center;
+}
+.key { display: inline-flex; align-items: center; gap: 6px; }
+.key i { width: 12px; height: 12px; border-radius: 6px; border: 2px solid; display: inline-block; }
+.key svg line { stroke: var(--faint); }
+
+.colhead { font-family: var(--font-label); font-size: 13px; font-weight: 600; fill: var(--fg); }
+.relhead { font-family: var(--font-mono); font-size: 10.5px; fill: var(--faint); }
+.edge { fill: none; stroke: var(--edge); stroke-width: 1.4; transition: stroke 0.15s, opacity 0.15s; }
+.edge.reach { stroke-dasharray: 4 4; }
+.edge.on { stroke: var(--thread); stroke-width: 2.2; opacity: 1; }
+.edge.dim { opacity: 0.18; }
+.node { cursor: pointer; transition: opacity 0.15s; }
+.node rect { stroke-width: 1.5; }
+.node text { font-family: var(--font-label); font-size: 12.5px; fill: var(--fg); pointer-events: none; }
+.node.dim { opacity: 0.25; }
+.node.sel rect { stroke-width: 3; }
+.node:focus { outline: none; }
+.node:focus-visible rect { stroke: var(--focus); stroke-width: 3; }
+.t-user rect { fill: var(--thread-soft); stroke: var(--thread); }
+.t-ws rect { fill: var(--host-soft); stroke: var(--host); }
+.t-server rect { fill: var(--kev-soft); stroke: var(--kev); }
+.t-admin rect { fill: var(--priv-soft); stroke: var(--priv); }
+.t-group rect { fill: var(--priv-soft); stroke: var(--priv); stroke-dasharray: 3 2; }
+.t-jewel rect { fill: var(--jewel-soft); stroke: var(--jewel); }
+.t-jewel text { fill: var(--jewel-text); font-weight: 600; }
+
+.below { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .below { grid-template-columns: minmax(0, 1fr); } }
+.section { padding: 18px 20px 20px; display: grid; gap: 12px; min-width: 0; }
+.section h2 {
+  margin: 0;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.who { font-size: 22px; font-weight: 700; margin: 0; overflow-wrap: anywhere; }
+.meta { color: var(--muted); font-size: 13.5px; margin: 0; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; }
+.step { display: grid; grid-template-columns: 14px minmax(0, 1fr); gap: 12px; }
+.rail { display: flex; flex-direction: column; align-items: center; }
+.dot { width: 12px; height: 12px; border-radius: 6px; border: 2px solid; margin-top: 5px; flex: none; }
+.d-user { border-color: var(--thread); } .d-ws { border-color: var(--host); } .d-server { border-color: var(--kev); }
+.d-admin, .d-group { border-color: var(--priv); } .d-jewel { border-color: var(--jewel); }
+.bar { width: 2px; flex: 1; background: var(--thread); opacity: 0.5; min-height: 14px; }
+.step:last-child .bar { display: none; }
+.body { padding-bottom: 10px; min-width: 0; }
+.kind { font-size: 11.5px; color: var(--faint); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.name { font-weight: 600; overflow-wrap: anywhere; }
+.eid { font-family: var(--font-mono); font-size: 11px; color: var(--faint); overflow-wrap: anywhere; }
+.rel {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--thread);
+  border: 1px solid var(--thread-soft);
+  border-radius: 4px;
+  padding: 0 6px;
+  margin-top: 4px;
+}
+.fix {
+  border-left: 3px solid var(--jewel);
+  padding: 8px 12px;
+  background: var(--jewel-soft);
+  border-radius: 0 8px 8px 0;
+  font-size: 14px;
+}
+.fix b { color: var(--jewel-text); }
+.users { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--fg);
+  background: var(--thread-soft);
+  border: 1px solid var(--thread);
+  border-radius: 999px;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+.chip:focus-visible, .row:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; font-weight: 500; color: var(--faint); font-size: 12px; padding: 0 8px 8px; }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td { padding: 9px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+.row { cursor: pointer; }
+.row:hover td, .row.sel td { background: var(--rowhover); }
+.sev {
+  display: inline-block;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  color: var(--jewel);
+  border: 1px solid var(--jewel);
+}
+.adm { font-weight: 600; }
+.grp { color: var(--muted); font-size: 12.5px; }
+footer { color: var(--faint); font-size: 12.5px; max-width: 90ch; }
+footer code { font-family: var(--font-mono); font-size: 11.5px; }
+@media (prefers-reduced-motion: reduce) { .edge, .node { transition: none; } }
+</style>
+<style>body{margin:0}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Threadline · Q2 attack paths · synthetic estate</div>
+    <h1>Phished users to crown jewels</h1>
+    <p class="lede">Each row is a user hit by a phishing alert, followed hop by hop to the nearest crown jewel. A network hop counts only when the server it reaches has an open KEV finding.</p>
+    <div class="stats">
+      <div class="stat"><b>18 / 25</b><span>recently phished users have a path</span></div>
+      <div class="stat crit"><b>4 hops</b><span>quinn.novak to all 5 crown jewels</span></div>
+      <div class="stat"><b>6</b><span>admin sessions carry every path</span></div>
+    </div>
+  </header>
+
+  <div class="card">
+    <div class="graph" id="graph"></div>
+    <div class="hint">
+      <span>Hover to trace a path. Click a node for details.</span>
+      <span class="key"><i style="border-color:var(--kev)"></i>server with open KEV finding</span>
+      <span class="key"><i style="border-color:var(--priv)"></i>privileged account or group</span>
+      <span class="key"><i style="border-color:var(--jewel)"></i>crown jewel</span>
+      <span class="key"><svg width="26" height="8" aria-hidden="true"><line x1="0" y1="4" x2="26" y2="4" stroke-width="1.5" stroke-dasharray="4 4"/></svg>other crown jewels the group administers</span>
+    </div>
+  </div>
+
+  <div class="below">
+    <section class="card section" id="detail" aria-live="polite"></section>
+    <section class="card section">
+      <h2>Choke points: admin sessions on the path</h2>
+      <table>
+        <thead><tr><th>Admin account</th><th class="num">Users</th><th class="num">Jewels</th></tr></thead>
+        <tbody id="chokes"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <footer>
+    Source: the Threadline Q2 query and a <code>(:Group)-[:ADMIN_TO]-&gt;(:CrownJewel)</code> query, run read-only through the <code>neo4j-threadline</code> MCP server against the local graph loaded on 27 Oct 2026. Kestrel Bank is fictional. It covers the 25 most recently phished users and the shortest path to each one's nearest crown jewel; longer alternative paths are not shown. Element IDs change after a full reload.
+  </footer>
+</div>
+
+<script>
+const PFX = "4:a787cc7b-c684-4686-9579-6daaf17a1793:";
+const DOMAIN = "@kestrelbank.example";
+const SA = "Server Admins - ";
+// [user, phishedAt, path after the user, relationship types, element ID suffixes, crown jewels reached]
+const RAW = [
+  ["priya.fischer2", "2026-10-26T12:18:37Z", ["ws-gt-0208", "srv-gt-app11", "adm.vera.bose", SA + "Group Technology", "cust-dwh01"], "CA CR HS MO AT", [44195, 2080, 2587, 10158, 10204, 1698], ["cust-dwh01"]],
+  ["jonas.diaz2", "2026-10-25T01:05:55Z", ["ws-cb-0102", "srv-cb-file10", "adm.umar.okafor", SA + "Corporate Banking", "trading-app01"], "CA CR HS MO AT", [43557, 291, 2867, 10154, 10202, 2465], ["trading-app01"]],
+  ["quinn.novak", "2026-10-24T21:54:29Z", ["ws-rb-0001", "adm.grace.usman", "Domain Admins", "swift-gw01"], "CA HS MO AT", [42949, 2205, 10145, 10199, 611], ["swift-gw01", "pay-switch01", "cust-dwh01", "trading-app01", "core-banking-db01"]],
+  ["wei.ito", "2026-10-24T19:15:41Z", ["ws-rb-0138", "srv-rb-file29", "adm.olu.silva", SA + "Retail Banking", "core-banking-db01"], "CA CR HS MO AT", [43771, 2378, 834, 10150, 10200, 2640], ["core-banking-db01"]],
+  ["olu.yilmaz4", "2026-10-24T12:08:03Z", ["ws-cb-0245", "srv-cb-web18", "adm.umar.okafor", SA + "Corporate Banking", "trading-app01"], "CA CR HS MO AT", [44415, 1874, 2741, 10154, 10202, 2465], ["trading-app01"]],
+  ["umar.gupta3", "2026-10-24T10:50:53Z", ["ws-rb-0177", "srv-rb-file22", "adm.olu.silva", SA + "Retail Banking", "core-banking-db01"], "CA CR HS MO AT", [44005, 458, 2604, 10150, 10200, 2640], ["core-banking-db01"]],
+  ["rosa.carter2", "2026-10-24T01:17:06Z", ["ws-cb-0182", "srv-cb-file12", "adm.umar.okafor", SA + "Corporate Banking", "trading-app01"], "CA CR HS MO AT", [44037, 1714, 2265, 10154, 10202, 2465], ["trading-app01"]],
+  ["priya.yilmaz", "2026-10-23T23:54:32Z", ["ws-cb-0039", "srv-cb-web09", "adm.umar.okafor", SA + "Corporate Banking", "trading-app01"], "CA CR HS MO AT", [43179, 1331, 2732, 10154, 10202, 2465], ["trading-app01"]],
+  ["sami.quist", "2026-10-23T19:23:48Z", ["ws-pay-0152", "srv-pay-file02", "adm.maya.rossi", SA + "Payments", "swift-gw01"], "CA CR HS MO AT", [43858, 2608, 306, 10156, 10203, 611], ["swift-gw01", "pay-switch01"]],
+  ["jonas.adams3", "2026-10-23T15:50:37Z", ["ws-cb-0063", "srv-cb-app25", "adm.umar.okafor", SA + "Corporate Banking", "trading-app01"], "CA CR HS MO AT", [43323, 1102, 351, 10154, 10202, 2465], ["trading-app01"]],
+  ["noah.hughes3", "2026-10-23T15:11:39Z", ["ws-pay-0143", "srv-pay-file22", "adm.maya.rossi", SA + "Payments", "swift-gw01"], "CA CR HS MO AT", [43804, 70, 2209, 10156, 10203, 611], ["swift-gw01", "pay-switch01"]],
+  ["wei.lopez3", "2026-10-22T22:40:16Z", ["ws-pay-0197", "srv-pay-web06", "adm.maya.rossi", SA + "Payments", "swift-gw01"], "CA CR HS MO AT", [44128, 180, 658, 10156, 10203, 611], ["swift-gw01", "pay-switch01"]],
+  ["farid.hughes4", "2026-10-22T12:23:44Z", ["ws-cb-0112", "srv-cb-app08", "adm.yusuf.rossi", SA + "Corporate Banking", "trading-app01"], "CA CR HS MO AT", [43617, 2182, 1568, 10155, 10202, 2465], ["trading-app01"]],
+  ["xan.bose3", "2026-10-22T09:12:35Z", ["ws-pay-0027", "srv-pay-app23", "adm.maya.rossi", SA + "Payments", "swift-gw01"], "CA CR HS MO AT", [43108, 2670, 1446, 10156, 10203, 611], ["swift-gw01", "pay-switch01"]],
+  ["liam.bose5", "2026-10-22T03:36:17Z", ["ws-gt-0193", "srv-gt-web23", "adm.vera.bose", SA + "Group Technology", "cust-dwh01"], "CA CR HS MO AT", [44105, 787, 2942, 10158, 10204, 1698], ["cust-dwh01"]],
+  ["umar.zhou", "2026-10-21T19:48:29Z", ["ws-rb-0110", "srv-rb-web14", "srv-rb-db26", "adm.olu.silva", SA + "Retail Banking", "core-banking-db01"], "CA CR CR HS MO AT", [43603, 1090, 878, 1093, 10150, 10200, 2640], ["core-banking-db01"]],
+  ["umar.yilmaz2", "2026-10-21T06:00:33Z", ["ws-pay-0108", "srv-pay-app13", "adm.maya.rossi", SA + "Payments", "swift-gw01"], "CA CR HS MO AT", [43594, 2533, 2290, 10156, 10203, 611], ["swift-gw01", "pay-switch01"]],
+  ["priya.evans", "2026-10-20T20:44:00Z", ["ws-pay-0057", "srv-pay-app01", "adm.maya.rossi", SA + "Payments", "swift-gw01"], "CA CR HS MO AT", [43288, 2750, 537, 10156, 10203, 611], ["swift-gw01", "pay-switch01"]],
+];
+// From (:Group)-[:ADMIN_TO]->(:Asset:CrownJewel)
+const GROUP_JEWELS = {
+  "Domain Admins": ["swift-gw01", "pay-switch01", "cust-dwh01", "trading-app01", "core-banking-db01"],
+  [SA + "Payments"]: ["swift-gw01", "pay-switch01"],
+  [SA + "Corporate Banking"]: ["trading-app01"],
+  [SA + "Retail Banking"]: ["core-banking-db01"],
+  [SA + "Group Technology"]: ["cust-dwh01"],
+};
+const REL = { CA: "CAN_ACCESS", CR: "CAN_REACH", HS: "HAS_SESSION", MO: "MEMBER_OF", AT: "ADMIN_TO" };
+const COLS = [
+  { key: "user", head: "Phished user", w: 150 },
+  { key: "ws", head: "Workstation", w: 112 },
+  { key: "server", head: "Exploitable server", w: 124 },
+  { key: "admin", head: "Admin session", w: 150 },
+  { key: "group", head: "Admin group", w: 200 },
+  { key: "jewel", head: "Crown jewel", w: 150 },
+];
+const RELHEAD = ["CAN_ACCESS", "CAN_REACH", "HAS_SESSION", "MEMBER_OF", "ADMIN_TO"];
+const KIND = { user: "Phished user", ws: "Workstation", server: "Server · open KEV finding", admin: "Privileged account", group: "Privileged group", jewel: "Crown jewel" };
+const GROUP_ORDER = ["Domain Admins", SA + "Payments", SA + "Corporate Banking", SA + "Retail Banking", SA + "Group Technology"];
+
+const paths = RAW.map(([u, at, rest, rels, ids, jewels]) => ({
+  user: u, at, names: [u, ...rest], rels: rels.split(" ").map(r => REL[r]), ids: ids.map(i => PFX + i), jewels,
+}));
+paths.forEach(p => {
+  p.admin = p.names.find(n => n.startsWith("adm."));
+  p.group = p.names[p.names.length - 2];
+  p.sessionHost = p.names[p.names.indexOf(p.admin) - 1];
+});
+
+function typeOf(name, i, len) {
+  if (i === 0) return "user";
+  if (i === len - 1) return "jewel";
+  if (name.startsWith("ws-")) return "ws";
+  if (name.startsWith("srv-")) return "server";
+  if (name.startsWith("adm.")) return "admin";
+  return "group";
+}
+const nodes = new Map();
+const edges = new Map();
+function node(name, type) {
+  if (!nodes.has(name)) nodes.set(name, { name, type, col: COLS.findIndex(c => c.key === type), paths: new Set(), preds: new Set(), id: null });
+  return nodes.get(name);
+}
+function edge(a, b, rel) {
+  const k = a + ">" + b;
+  if (!edges.has(k)) edges.set(k, { a, b, rel, paths: new Set(), onPath: false });
+  return edges.get(k);
+}
+paths.forEach((p, pi) => {
+  p.names.forEach((nm, i) => {
+    const nd = node(nm, typeOf(nm, i, p.names.length));
+    nd.id = p.ids[i];
+    nd.paths.add(pi);
+    if (i) {
+      nd.preds.add(p.names[i - 1]);
+      const e = edge(p.names[i - 1], nm, p.rels[i - 1]);
+      e.paths.add(pi);
+      e.onPath = true;
+    }
+  });
+});
+// Other crown jewels each group administers: real ADMIN_TO edges, lit with the paths that reach that group.
+Object.entries(GROUP_JEWELS).forEach(([g, js]) => {
+  if (!nodes.has(g)) return;
+  const via = [...nodes.get(g).paths];
+  js.forEach(j => {
+    const jn = node(j, "jewel");
+    jn.preds.add(g);
+    const e = edge(g, j, "ADMIN_TO");
+    via.forEach(pi => { e.paths.add(pi); jn.paths.add(pi); });
+  });
+});
+
+// ---- layout: users in rows, every later column placed at the mean height of its predecessors
+const GAP = 34, TOP = 76, PILL = 26, HGAP = 52, LEFT = 14;
+const colX = [];
+COLS.reduce((x, c, i) => (colX[i] = x, x + c.w + HGAP), LEFT);
+const width = colX[5] + COLS[5].w + LEFT + 24;
+const order = paths.map((_, i) => i).sort((a, b) =>
+  GROUP_ORDER.indexOf(paths[a].group) - GROUP_ORDER.indexOf(paths[b].group)
+  || paths[a].admin.localeCompare(paths[b].admin)
+  || paths[b].at.localeCompare(paths[a].at));
+order.forEach((pi, row) => {
+  const p = paths[pi];
+  nodes.get(p.names[0]).y = TOP + row * GAP;
+  nodes.get(p.names[1]).y = TOP + row * GAP;
+});
+for (let c = 2; c < COLS.length; c++) {
+  const col = [...nodes.values()].filter(n => n.col === c);
+  const placed = n => [...n.preds].map(p => nodes.get(p)).filter(p => p.y !== undefined && p.col < c);
+  col.forEach(n => { const ps = placed(n); if (ps.length) n.want = ps.reduce((s, p) => s + p.y, 0) / ps.length; });
+  col.forEach(n => { if (n.want === undefined) n.want = nodes.get([...n.preds][0]).want + 1; });
+  col.sort((a, b) => a.want - b.want);
+  let last = -Infinity;
+  col.forEach(n => { n.y = Math.max(n.want, last + GAP); last = n.y; });
+}
+const height = Math.max(...[...nodes.values()].map(n => n.y)) + 40;
+
+// ---- render
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(NS, tag);
+  Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
+  if (parent) parent.appendChild(e);
+  return e;
+};
+const label = n => n.type === "group" ? n.name.replace(SA, "Server Admins · ") : n.name;
+const svg = el("svg", { viewBox: `0 0 ${width} ${height}`, role: "group", "aria-label": "Attack path graph" });
+document.getElementById("graph").appendChild(svg);
+COLS.forEach((c, i) => {
+  el("text", { x: colX[i] + c.w / 2, y: 26, "text-anchor": "middle", class: "colhead" }, svg).textContent = c.head;
+  if (i < RELHEAD.length) el("text", { x: colX[i] + c.w + HGAP / 2, y: 50, "text-anchor": "middle", class: "relhead" }, svg).textContent = RELHEAD[i];
+});
+const edgeLayer = el("g", {}, svg);
+const nodeLayer = el("g", {}, svg);
+edges.forEach(e => {
+  const a = nodes.get(e.a), b = nodes.get(e.b);
+  const ax = colX[a.col] + COLS[a.col].w, ay = a.y + PILL / 2, by = b.y + PILL / 2;
+  let d;
+  if (a.col === b.col) {
+    const bx = colX[b.col] + COLS[b.col].w;
+    d = `M${ax},${ay} C${ax + 34},${ay} ${bx + 34},${by} ${bx},${by}`;
+  } else {
+    const bx = colX[b.col], mx = (ax + bx) / 2;
+    d = `M${ax},${ay} C${mx},${ay} ${mx},${by} ${bx},${by}`;
+  }
+  e.el = el("path", { d, class: "edge" + (e.onPath ? "" : " reach") }, edgeLayer);
+  el("title", {}, e.el).textContent = `${e.a} -[:${e.rel}]-> ${e.b}`;
+});
+nodes.forEach(n => {
+  const g = el("g", { class: `node t-${n.type}`, tabindex: 0, role: "button", "aria-label": `${KIND[n.type]} ${n.name}` }, nodeLayer);
+  const w = COLS[n.col].w;
+  el("rect", { x: colX[n.col], y: n.y, width: w, height: PILL, rx: PILL / 2 }, g);
+  el("text", { x: colX[n.col] + w / 2, y: n.y + PILL / 2 + 4.5, "text-anchor": "middle" }, g).textContent = label(n);
+  n.el = g;
+  g.addEventListener("mouseenter", () => highlight(n.paths));
+  g.addEventListener("mouseleave", () => highlight(current()));
+  g.addEventListener("focus", () => highlight(n.paths));
+  g.addEventListener("blur", () => highlight(current()));
+  g.addEventListener("click", () => select(n));
+  g.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); select(n); } });
+});
+
+// ---- state
+let selected = null;
+const current = () => selected ? selected.paths : new Set();
+function highlight(set) {
+  const any = set.size > 0;
+  nodes.forEach(n => {
+    const on = [...n.paths].some(p => set.has(p));
+    n.el.classList.toggle("dim", any && !on);
+    n.el.classList.toggle("sel", selected === n);
+  });
+  edges.forEach(e => {
+    const on = [...e.paths].some(p => set.has(p));
+    e.el.classList.toggle("on", any && on);
+    e.el.classList.toggle("dim", any && !on);
+  });
+}
+const fmt = at => new Date(at).toLocaleString("en-GB", { timeZone: "UTC", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) + " UTC";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function fixFor(p) {
+  if (!p.sessionHost.startsWith("srv-"))
+    return `A <b>Domain Admin</b> session is cached on the workstation <b>${esc(p.sessionHost)}</b>. End it and reset <b>${esc(p.admin)}</b>'s credentials, and keep domain-admin logons off workstations.`;
+  return `Clear <b>${esc(p.admin)}</b>'s session on <b>${esc(p.sessionHost)}</b>, or patch the KEV finding that makes that server reachable. Either one breaks this path.`;
+}
+function renderPath(pi) {
+  const p = paths[pi];
+  const steps = p.names.map((nm, i) => {
+    const n = nodes.get(nm);
+    const shown = n.type === "user" || n.type === "admin" ? nm + DOMAIN : nm;
+    return `<li class="step"><div class="rail"><span class="dot d-${n.type}"></span><span class="bar"></span></div>
+      <div class="body"><div class="kind">${KIND[n.type]}</div><div class="name">${esc(shown)}</div><div class="eid">${esc(p.ids[i])}</div>
+      ${i < p.rels.length ? `<span class="rel">${p.rels[i]} ↓</span>` : ""}</div></li>`;
+  }).join("");
+  const more = p.jewels.filter(j => j !== p.names[p.names.length - 1]);
+  return `<h2>Selected path</h2>
+    <p class="who">${esc(p.user)}</p>
+    <p class="meta">Phished ${fmt(p.at)} · ${p.rels.length} hops · reaches ${p.jewels.length} crown jewel${p.jewels.length > 1 ? "s" : ""}${more.length ? ` (also ${more.map(esc).join(", ")})` : ""}</p>
+    <ol class="steps">${steps}</ol>
+    <div class="fix">${fixFor(p)}</div>`;
+}
+function renderNode(n) {
+  const users = [...n.paths].map(pi => paths[pi]);
+  const jewels = [...new Set(users.flatMap(p => p.jewels))];
+  return `<h2>${KIND[n.type]}</h2>
+    <p class="who">${esc(label(n))}</p>
+    <p class="meta">${users.length} phished user${users.length === 1 ? "" : "s"} ${n.type === "jewel" ? "can reach this" : "route through this"} · crown jewels in reach: ${jewels.map(esc).join(", ")}</p>
+    ${n.id ? `<div class="eid">${esc(n.id)}</div>` : ""}
+    <div class="users">${users.map(p => `<button class="chip" data-pi="${paths.indexOf(p)}">${esc(p.user)}</button>`).join("")}</div>`;
+}
+const detail = document.getElementById("detail");
+function select(n) {
+  selected = n;
+  detail.innerHTML = n.type === "user" ? renderPath([...n.paths][0]) : renderNode(n);
+  detail.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => select(nodes.get(paths[+b.dataset.pi].user))));
+  document.querySelectorAll(".row").forEach(r => r.classList.toggle("sel", r.dataset.name === n.name));
+  highlight(current());
+}
+
+// ---- choke points
+const admins = new Map();
+paths.forEach(p => {
+  if (!admins.has(p.admin)) admins.set(p.admin, { name: p.admin, group: p.group, users: 0 });
+  admins.get(p.admin).users++;
+});
+const chokeRows = [...admins.values()].sort((a, b) =>
+  GROUP_JEWELS[b.group].length - GROUP_JEWELS[a.group].length || b.users - a.users || a.name.localeCompare(b.name));
+document.getElementById("chokes").innerHTML = chokeRows.map(a => `<tr class="row" tabindex="0" data-name="${esc(a.name)}">
+    <td><div class="adm">${esc(a.name)}${a.group === "Domain Admins" ? '<span class="sev">DOMAIN ADMIN</span>' : ""}</div><div class="grp">${esc(a.group)}</div></td>
+    <td class="num">${a.users}</td><td class="num">${GROUP_JEWELS[a.group].length}</td></tr>`).join("");
+document.querySelectorAll(".row").forEach(r => {
+  const go = () => select(nodes.get(r.dataset.name));
+  r.addEventListener("click", go);
+  r.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); go(); } });
+  r.addEventListener("mouseenter", () => highlight(nodes.get(r.dataset.name).paths));
+  r.addEventListener("mouseleave", () => highlight(current()));
+});
+
+select(nodes.get("quinn.novak"));
+</script>
+</body>
+</html>
